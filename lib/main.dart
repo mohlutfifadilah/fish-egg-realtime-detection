@@ -5,7 +5,7 @@ import 'InputPage.dart';
 import 'RealTimePage.dart';
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     title: 'Deteksi Telur Ikan',
     home: Home(),
   ));
@@ -39,13 +39,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       body: TabBarView(
         controller: _controller,
         children: [
-          HomePage(),
+          const HomePage(),
           InputPage(),
-          RealTimePage(),
+          const RealTimePage(),
         ],
       ),
       bottomNavigationBar: TabBar(
-        tabs: <Widget>[
+        tabs: const <Widget>[
           Tab(icon: Icon(Icons.home)),
           Tab(icon: Icon(Icons.image_sharp)),
           Tab(icon: Icon(Icons.slow_motion_video_sharp)),
