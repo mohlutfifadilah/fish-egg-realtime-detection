@@ -1,40 +1,41 @@
-package com.yourdomain.yourapp
-
-import android.os.Bundle
+import android.graphics.Rect
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import org.tensorflow.lite.Interpreter
-import java.io.FileInputStream
-import java.io.File
-import java.nio.channels.FileChannel
-import java.nio.MappedByteBuffer
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import org.opencv.core.Mat
+import org.opencv.core.Rect
+import org.opencv.core.Size
+import org.opencv.imgproc.Imgproc
+import ai.onnxruntime.OnnxRuntime
+import ai.onnxruntime.OrtEnvironment
+import ai.onnxruntime.OrtSession
 
-class MainActivity: FlutterActivity() {
-    private val CHANNEL = "onnxruntime_flutter"
+class MainActivity : FlutterActivity() {
+    private val CHANNEL = "onnx_runtime"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            if (call.method == "runModel") {
-                val imagePath = call.argument<String>("imagePath")
-                if (imagePath != null) {
-                    val output = runModel(imagePath)
-                    result.success(output)
-                } else {
-                    result.error("UNAVAILABLE", "Image path not available.", null)
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "runInference" -> {
+                    val planes = call.argument<List<ByteArray>>("planes")!!
+                    val width = call.argument<Int>("width")!!
+                    val height = call.argument<Int>("height")!!
+                    val boxes = runModel(planes, width, height)
+                    result.success(boxes.map { box -> box.toFloatArray() })
                 }
-            } else {
-                result.notImplemented()
+                else -> result.notImplemented()
             }
         }
     }
 
-    private fun runModel(imagePath: String): List<Any> {
-        // Implementasi pemrosesan model ONNX disini
-        // Misalnya, melakukan inference dan mengembalikan bounding boxes
-        return listOf()
+    private fun runModel(planes: List<ByteArray>, width: Int, height: Int): List<Rect> {
+        // Implement model loading and inference here
+        val environment = OrtEnvironment.getEnvironment()
+        val session = environment.createSession("assets/model.onnx")
+        val inputTensor = OrtTensor.createTensor(environment, planes)
+        val results = session.run(Collections.singletonMap("input", inputTensor))
+        // Process results and convert to bounding boxes
+        // Return list of Rects
     }
 }
